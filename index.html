@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="./style.css" />
+  <title>WebGL Shader Viewer</title>
+</head>
+
+<body>
+  <div id="gl-box">
+    <canvas id="gl-canvas" width="800" height="450"></canvas>
+  </div>
+  <script id="vertex-shader" type="x-shader/x-vertex">
+    #version 300 es
+    
+    in vec4 aPosition;
+    in vec4 aNormal;
+    out vec3 N, L, E;
+    
+    uniform mat4 uModelViewMatrix;
+    uniform mat4 uProjectionMatrix;
+    uniform vec4 uLightPosition;
+    uniform mat3 uNormalMatrix;
+    
+    void main()
+    {
+        vec3 pos = (uModelViewMatrix * aPosition).xyz;
+        if(uLightPosition.a == 0.0)  
+              L = normalize(uLightPosition.xyz);
+        else  
+              L = normalize(uLightPosition).xyz - pos;
+    
+        E =  -normalize(pos);
+        N = normalize(uNormalMatrix*aNormal.xyz);
+        gl_Position = uProjectionMatrix * uModelViewMatrix * aPosition;
+    
+    }
+    </script>
+
+  <script id="fragment-shader" type="x-shader/x-fragment">
+    #version 300 es
+    
+    precision mediump float;
+    
+    uniform vec4 uAmbientProduct;
+    uniform vec4 uDiffuseProduct;
+    uniform vec4 uSpecularProduct;
+    uniform float uShininess;
+    
+    in vec3 N, L, E;
+    out vec4 fColor;
+    
+    void main()
+    {
+    
+        vec3 H = normalize( L + E );
+        vec4 ambient = uAmbientProduct;
+    
+        float Kd = max( dot(L, N), 0.0 );
+        vec4  diffuse = Kd*uDiffuseProduct;
+    
+        float Ks = pow( max(dot(N, H), 0.0), uShininess );
+        vec4  specular = Ks * uSpecularProduct;
+    
+        if( dot(L, N) < 0.0 ) specular = vec4(0.0, 0.0, 0.0, 1.0);
+    
+        fColor = ambient + diffuse +specular;
+        fColor.a = 1.0;
+    
+    }
+    </script>
+  <div id="controls">
+    <div>
+      Arm1 Position
+      <div><input type="range" id="arm1-x-axis" name="arm1-x-axis" min="-10.0" max="10.0" step="1" />
+        <label for="arm1-x-axis">Arm1 x: <span id="arm1X">0</span></label>
+      </div>
+      <div><input type="range" id="arm1-y-axis" name="arm1-y-axis" min="-10.0" max="10.0" step="1" />
+        <label for="arm1-y-axis">Arm1 y: <span id="arm1Y">0</span></label>
+      </div>
+      <div><input type="range" id="arm1-z-axis" name="arm1-z-axis" min="-10.0" max="10.0" step="1" />
+        <label for="arm1-z-axis">Arm1 z: <span id="arm1Z">0</span></label>
+      </div>
+    </div>
+    <div>
+      Arm Rotation <div><input type="range" id="arm-rot" name="arm-rot" min="-180.0" max="180.0" step="1" />
+        <label for="arm-rot">Arm rotation: <span id="armR">0</span></label>
+      </div>
+
+    </div>
+    <div>
+      Joint Positions
+      <div><input type="range" id="j1-ang" name="j1-ang" min="-90.0" max="90.0" step="1" />
+        <label for="j1-ang">Joint 1 Angle: <span id="j1Ang">0</span></label>
+      </div>
+      <div><input type="range" id="j2-ang" name="j2-ang" min="-90.0" max="90.0" step="1" />
+        <label for="j2-ang">Joint 2 Angle: <span id="j2Ang">0</span></label>
+      </div>
+
+    </div>
+    <div>
+      Camera Position
+      <div><input type="range" id="cam-x-axis" name="cam-x-axis" min="-25.0" max="25.0" step="1" />
+        <label for="cam-x-axis">Camera x: <span id="camX">0</span></label>
+      </div>
+      <div><input type="range" id="cam-y-axis" name="cam-y-axis" min="-25.0" max="25.0" step="1" />
+        <label for="cam-y-axis">Camera y: <span id="camY">0</span></label>
+      </div>
+      <div><input type="range" id="cam-z-axis" name="cam-z-axis" min="-25.0" max="25.0" step="1" />
+        <label for="cam-z-axis">Camera z: <span id="camZ">0</span></label>
+      </div>
+      Camera always pointing at origin
+    </div>
+    <div>
+      Light Position
+      <div><input type="range" id="light-x-axis" name="light-x-axis" min="-25.0" max="25" step="0.1" />
+        <label for="light-x-axis">Light Source x: <span id="lightX">0</span></label>
+      </div>
+      <div><input type="range" id="light-y-axis" name="light-y-axis" min="-25.0" max="25.0" step="0.1" />
+        <label for="light-y-axis">Light Source y: <span id="lightY">0</span></label>
+      </div>
+      <div><input type="range" id="light-z-axis" name="light-z-axis" min="-25.0" max="25.0" step="0.1" />
+        <label for="light-z-axis">Light Source z: <span id="lightZ">0</span></label>
+      </div>
+    </div><br>
+
+  </div>
+  <script src="./initShaders.js"></script>
+  <script src="./MVnew.js"></script>
+  <script src="./terrain.js"></script>
+  <script src="./eventHandlers.js"></script>
+  <script src="./main.js" defer></script>
+</body>
+
+</html>
